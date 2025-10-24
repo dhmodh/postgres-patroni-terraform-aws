@@ -10,6 +10,65 @@ This project deploys a highly available, auto-healing PostgreSQL cluster on AWS 
 - **Backups**: Automated S3 backups with point-in-time recovery
 - **Security**: Encrypted storage, VPC isolation, and secure access controls
 
+## Project Structure
+
+```
+postgres-patroni-terraform-aws/
+├── 📁 Infrastructure
+│   ├── main.tf                    # Main Terraform configuration
+│   ├── variables.tf              # Variable definitions
+│   ├── outputs.tf                # Output values
+│   └── terraform.tfvars.example # Configuration template
+│
+├── 📁 Configuration Files
+│   ├── user_data.sh              # EC2 instance setup script
+│   ├── patroni-config.yaml       # Patroni cluster configuration
+│   └── datadog-config.yaml      # Datadog monitoring configuration
+│
+├── 📁 Scripts & Automation
+│   └── backup-scripts.sh         # Backup and recovery scripts
+│
+├── 📁 Documentation
+│   ├── README.md                 # Project overview and usage
+│   └── DEPLOYMENT.md             # Step-by-step deployment guide
+│
+└── 📁 Generated Files (after deployment)
+    ├── terraform.tfvars          # Your configuration (create from example)
+    ├── terraform.tfstate         # Terraform state file
+    └── terraform.tfstate.backup  # Terraform state backup
+```
+
+### File Descriptions
+
+#### 🏗️ **Infrastructure Files**
+- **`main.tf`** - Core Terraform configuration including VPC, EC2 instances, load balancer, security groups, and monitoring
+- **`variables.tf`** - All configurable parameters with descriptions and default values
+- **`outputs.tf`** - Important values exposed after deployment (connection strings, IPs, etc.)
+- **`terraform.tfvars.example`** - Template for your custom configuration
+
+#### ⚙️ **Configuration Files**
+- **`user_data.sh`** - Bootstrap script that runs on each EC2 instance to install PostgreSQL, Patroni, and Datadog
+- **`patroni-config.yaml`** - Patroni cluster configuration template with HA settings
+- **`datadog-config.yaml`** - Datadog agent configuration for PostgreSQL and Patroni monitoring
+
+#### 🔧 **Scripts & Automation**
+- **`backup-scripts.sh`** - Comprehensive backup and recovery scripts with S3 integration
+
+#### 📚 **Documentation**
+- **`README.md`** - This file with project overview, usage instructions, and troubleshooting
+- **`DEPLOYMENT.md`** - Detailed step-by-step deployment guide with post-deployment configuration
+
+### Key Components Overview
+
+| Component | Purpose | Location |
+|-----------|---------|----------|
+| **Terraform Config** | Infrastructure as Code | `main.tf`, `variables.tf`, `outputs.tf` |
+| **EC2 Bootstrap** | Instance setup automation | `user_data.sh` |
+| **Patroni Config** | PostgreSQL HA cluster | `patroni-config.yaml` |
+| **Monitoring** | Datadog integration | `datadog-config.yaml` |
+| **Backup System** | Automated backups | `backup-scripts.sh` |
+| **Documentation** | Usage and deployment guides | `README.md`, `DEPLOYMENT.md` |
+
 ## Prerequisites
 
 1. **AWS CLI** configured with appropriate permissions
