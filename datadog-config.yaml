@@ -1,0 +1,144 @@
+# Datadog Configuration for PostgreSQL Patroni Cluster
+
+# PostgreSQL Integration Configuration
+# File: /etc/datadog-agent/conf.d/postgres.d/conf.yaml
+
+init_config:
+
+instances:
+  - host: localhost
+    port: 5432
+    username: datadog
+    password: ${postgres_password}
+    dbname: postgres
+    ssl: False
+    tags:
+      - env:production
+      - service:postgresql
+      - cluster:${cluster_name}
+      - node:${node_name}
+    collect_activity_metrics: true
+    collect_count_metrics: true
+    collect_default_database: true
+    collect_function_metrics: true
+    collect_default_metrics: true
+    custom_queries:
+      - metric_prefix: postgresql.patroni
+        query: "SELECT CASE WHEN pg_is_in_recovery() THEN 0 ELSE 1 END as is_primary"
+        columns:
+          - name: is_primary
+            type: gauge
+      - metric_prefix: postgresql.replication
+        query: |
+          SELECT 
+            CASE WHEN pg_is_in_recovery() THEN 
+              pg_wal_lsn_diff(pg_last_wal_receive_lsn(), pg_last_wal_replay_lsn())
+            ELSE 0 
+            END as lag_bytes
+        columns:
+          - name: lag_bytes
+            type: gauge
+
+# Patroni Integration Configuration
+# File: /etc/datadog-agent/conf.d/patroni.d/conf.yaml
+
+init_config:
+
+instances:
+  - url: http://localhost:8008
+    tags:
+      - env:production
+      - service:patroni
+      - cluster:${cluster_name}
+      - node:${node_name}
+
+# Custom Metrics Collection
+# File: /etc/datadog-agent/conf.d/custom_postgres.d/conf.yaml
+
+init_config:
+
+instances:
+  - custom_queries:
+      - metric_prefix: postgresql.custom
+        query: |
+          SELECT 
+            datname,
+            numbackends,
+            xact_commit,
+            xact_rollback,
+            blks_read,
+            blks_hit,
+            tup_returned,
+            tup_fetched,
+            tup_inserted,
+            tup_updated,
+            tup_deleted
+          FROM pg_stat_database 
+          WHERE datname NOT IN ('template0', 'template1', 'postgres')
+        columns:
+          - name: database
+            type: tag
+          - name: connections
+            type: gauge
+          - name: commits
+            type: counter
+          - name: rollbacks
+            type: counter
+          - name: blocks_read
+            type: counter
+          - name: blocks_hit
+            type: counter
+          - name: tuples_returned
+            type: counter
+          - name: tuples_fetched
+            type: counter
+          - name: tuples_inserted
+            type: counter
+          - name: tuples_updated
+            type: counter
+          - name: tuples_deleted
+            type: counter
+
+# Log Collection Configuration
+# File: /etc/datadog-agent/conf.d/postgresql.d/conf.yaml
+
+logs:
+  - type: file
+    path: /var/log/postgresql/*.log
+    service: postgresql
+    source: postgresql
+    log_processing_rules:
+      - type: multi_line
+        name: new_log_start_with_date
+        pattern: \d{4}-\d{2}-\d{2}
+      - type: exclude_at_match
+        name: exclude_connection_logs
+        pattern: connection authorized|connection received|connection authenticated
+
+  - type: file
+    path: /var/log/patroni/*.log
+    service: patroni
+    source: patroni
+    log_processing_rules:
+      - type: multi_line
+        name: new_log_start_with_timestamp
+        pattern: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}
+
+# Process Monitoring
+# File: /etc/datadog-agent/conf.d/process.d/conf.yaml
+
+init_config:
+
+instances:
+  - name: postgres
+    search_string: ['postgres']
+    exact_match: false
+    tags:
+      - service:postgresql
+      - cluster:${cluster_name}
+  - name: patroni
+    search_string: ['patroni']
+    exact_match: false
+    tags:
+      - service:patroni
+      - cluster:${cluster_name}

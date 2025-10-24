@@ -1,0 +1,52 @@
+# Terraform Variables Configuration
+# Copy this file to terraform.tfvars and customize the values
+
+# AWS Configuration
+aws_region = "us-west-2"
+project_name = "postgres-ha"
+
+# Network Configuration
+vpc_cidr = "10.0.0.0/16"
+public_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs = ["10.0.10.0/24", "10.0.20.0/24"]
+
+# PostgreSQL Configuration
+postgres_instance_count = 3
+postgres_instance_type = "t3.medium"
+postgres_volume_size = 100
+postgres_version = "15"
+
+# Patroni Configuration
+patroni_version = "3.0.2"
+
+# Security Configuration
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC... your-ssh-public-key"
+enable_ssl = true
+enable_encryption_at_rest = true
+enable_encryption_in_transit = true
+
+# Monitoring Configuration
+datadog_api_key = "your-datadog-api-key-here"
+monitoring_interval = 60
+log_retention_days = 30
+
+# Backup Configuration
+backup_retention_days = 30
+
+# Auto Scaling Configuration (optional)
+enable_auto_scaling = false
+min_capacity = 2
+max_capacity = 5
+scale_up_threshold = 70
+scale_down_threshold = 30
+
+# Environment
+environment = "production"
+
+# Additional Tags
+tags = {
+  Environment = "production"
+  Project     = "postgres-ha"
+  Owner       = "devops-team"
+  CostCenter  = "engineering"
+}
